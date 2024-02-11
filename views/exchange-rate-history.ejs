@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exchange Rate History</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <%- include('partials/navbar') %>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Exchange Rate History</h1>
+        <% if (history && history.length > 0) { %>
+            <div class="list-group">
+                <% history.forEach(function(record) { %>
+                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">From <%= record.fromCurrency %> to <%= record.toCurrency %></h5>
+                            <small class="text-muted"><%= record.timestamp.toDateString() %></small>
+                        </div>
+                        <p class="mb-1">Rate: <%= record.rate %></p>
+                    </a>
+                <% }); %>
+            </div>
+        <% } else { %>
+            <p>No exchange rate history found.</p>
+        <% } %>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

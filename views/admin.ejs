@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h1>Admin Panel</h1>
+        <div class="my-4">
+            <a href="/admin/add-user" class="btn btn-success">Create New User</a>
+        </div>
+        <div>
+            <h2>User List</h2>
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Username</th>
+                        <th>Admin</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(function(user) { %>
+                        <tr>
+                            <td><%= user.username %></td>
+                            <td><%= user.isAdmin ? 'Yes' : 'No' %></td>
+                            <td>
+                               
+                                <a href="/edit-user/<%= user._id %>" class="btn btn-primary btn-sm">Edit</a>
+                                
+                               
+                                <form action="/delete-user" method="post" style="display: inline;">
+                                    <input type="hidden" name="userId" value="<%= user._id %>">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

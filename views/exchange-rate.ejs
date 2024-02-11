@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exchange Rate</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <%- include('partials/navbar') %>
+  
+  <div class="container py-5">
+    <h1 class="mb-4 text-center">Currency Exchange Rate</h1>
+    <form action="/exchange-rate" method="get" class="form-inline justify-content-center mb-4">
+      <div class="form-group mb-2">
+        <input type="text" name="from" class="form-control" placeholder="From Currency (e.g., USD)" required>
+      </div>
+      <div class="form-group mx-sm-3 mb-2">
+        <input type="text" name="to" class="form-control" placeholder="To Currency (e.g., EUR)" required>
+      </div>
+      <button type="submit" class="btn btn-primary mb-2">Convert</button>
+    </form>
+
+    <% if (rate) { %>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Exchange Rate</h5>
+          <p class="card-text">1 <%= fromCurrency %> is equal to <%= rate %> <%= toCurrency %>.</p>
+        </div>
+      </div>
+    <% } else if (error) { %>
+      <div class="alert alert-danger" role="alert">
+        <%= error %>
+      </div>
+    <% } %>
+  </div>
+  
+  <% include('partials/footer') %> 
+  
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
