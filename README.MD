@@ -13,3 +13,11 @@ in the command line type in "npm install" to install all the dependencies, then 
 
 ## DEPLOY
 Deployed in heroku
+
+
+
+
+-----secret-info------
+To enter as a admin, do this:
+Username:sabinakass05
+Password:securepassword123
