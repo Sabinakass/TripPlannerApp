@@ -17,7 +17,14 @@ Deployed in heroku
 
 
 
+
+
+
+
+
+
+
 -----secret-info------
-To enter as a admin, do this:
+- To enter as a admin, do this:
 Username:sabinakass05
 Password:securepassword123
