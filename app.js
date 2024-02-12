@@ -8,8 +8,6 @@ const Weather = require("./weatherModel");
 const ExchangeRate = require('./ExchangeRateModel');
 
 
-const adminUsername = process.env.ADMIN_USERNAME;
-const adminPassword = process.env.ADMIN_PASSWORD;
 
 
 const app = express();
@@ -40,6 +38,7 @@ app.get("/", (req, res) => {
     weather: null,
     error: null,
     user: req.session.username || null,
+    isAdmin: req.session.isAdmin || false, 
   });
 });
 
@@ -75,6 +74,8 @@ app.get("/", (req, res) => {
         userId: req.session.userId,
         sunrise: weatherDat.sunrise,
         sunset: weatherDat.sunset,
+        lon:weatherData.coord.lon,
+        lat:weatherData.coord.lat,
       });
   
       await newWeather.save();
@@ -90,6 +91,7 @@ app.get("/", (req, res) => {
         weather: null,
         error: "Failed to fetch data. Please try again.",
         user: req.session.username,
+        isAdmin: req.session.isAdmin
       });
     }
   });
@@ -100,31 +102,35 @@ app.get("/login", (req, res) => {
     query: req.query,
     error: null,
     user: req.session ? req.session.user : null,
+    isAdmin: req.session.isAdmin
   });
 });
 
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
-  if (username === adminUsername && password === adminPassword) {
-    req.session.isAdmin = true;
-    req.session.username = username;
-
-    return res.redirect("/admin");
-  }
-
+  
   const user = await User.findOne({ username });
+
   if (user && password === user.password) {
     req.session.userId = user._id;
     req.session.username = user.username;
-    req.session.isAdmin = false;
 
-    return res.redirect("/");
+    
+    req.session.isAdmin = user.isAdmin || false;
+
+    if (req.session.isAdmin) {
+      return res.redirect("/admin");
+    } else {
+      return res.redirect("/");
+    }
   } else {
     res.render('login', {
-      query: req.query,
+      query: req.query, 
+      error: "Invalid username or password",
       user: req.session.user || null, 
-       error: "Invalid username or password" });
+      isAdmin: req.session.isAdmin
+    });
   }
 });
 
@@ -145,6 +151,7 @@ app.get("/weather-history", async (req, res) => {
       weatherData: weatherHistory,
       user: req.session.username || null,
       error: null,
+      isAdmin: req.session.isAdmin
     });
   } catch (error) {
     console.error("Error fetching weather history:", error);
@@ -152,6 +159,7 @@ app.get("/weather-history", async (req, res) => {
       weatherData: [],
       user: req.session.username || null,
       error: "Error fetching weather history",
+      isAdmin: req.session.isAdmin
     });
   }
 });
@@ -159,12 +167,17 @@ app.get("/weather-history", async (req, res) => {
 app.get("/admin", isAdmin, async (req, res) => {
   try {
     const users = await User.find({ deletionDate: null });
-    res.render("admin", { users });
+    res.render("admin", {
+      users: users,
+      user: req.session.username, 
+      isAdmin: req.session.isAdmin 
+    });
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).send("Error loading admin page");
   }
 });
+
 
 function isAdmin(req, res, next) {
   if (req.session.isAdmin) {
@@ -173,9 +186,14 @@ function isAdmin(req, res, next) {
     res.status(403).send("Access Denied");
   }
 }
+
 app.get("/admin/add-user", isAdmin, (req, res) => {
-  res.render("add-user");
+  res.render("add-user", {
+    user: req.session.username, 
+    isAdmin: req.session.isAdmin 
+  });
 });
+
 
 app.post("/admin/add-user", isAdmin, async (req, res) => {
   const { username, password, isAdmin } = req.body;
@@ -207,48 +225,52 @@ app.post("/delete-user", isAdmin, async (req, res) => {
   }
 });
 
+
 app.get("/edit-user/:id", async (req, res) => {
-  const userId = req.params.id;
-
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).send("User not found");
+        // Handle user not found error
+        return res.status(404).send("User not found");
     }
-
-    res.render("edit-user", { user });
-  } catch (error) {
+    res.render("edit-user", { user,isAdmin: req.session.isAdmin });
+} catch (error) {
     console.error("Error fetching user:", error);
     res.status(500).send("Internal Server Error");
-  }
+}
 });
+
 
 app.post("/users/edit/:userId", async (req, res) => {
   const { username, password } = req.body;
+  // Convert isAdmin from string to boolean correctly
+  let isAdmin = req.body.isAdmin === 'true';
+
   try {
     const user = await User.findById(req.params.userId);
     if (!user) {
       return res.status(404).send("User not found");
     }
 
-    user.username = username || user.username;
+    user.username = username;
+    if (password) user.password = password;
+    user.isAdmin = isAdmin;
 
-    if (password) {
-      user.password = password;
-    }
-    user.updateDate = new Date();
     await user.save();
     res.redirect("/admin");
   } catch (error) {
+    console.error("Error updating user:", error);
     res.status(500).send("Server error");
   }
 });
+
 
 app.get("/signup", (req, res) => {
   res.render("sign-up", {
     query: req.query,
     error: null,
     user: null,
+    isAdmin: req.session.isAdmin
   });
 });
 
@@ -260,7 +282,7 @@ app.post("/signup", async (req, res) => {
     res.redirect("/login");
   } catch (error) {
     res.status(500).send("Error registering new user, please try again.");
-    res.render("sign-up", { error: "An error message", query: req.query });
+    res.render("sign-up", { error: "An error message", query: req.query, isAdmin: req.session.isAdmin });
   }
 });
 
@@ -297,7 +319,8 @@ app.get("/exchange-rate", async (req, res) => {
       rate, 
       fromCurrency, 
       toCurrency, 
-      user
+      user,
+      isAdmin: req.session.isAdmin
     });
   } catch (error) {
     console.error("Error fetching exchange rate:", error);
@@ -315,12 +338,13 @@ app.get("/exchange-rate-history", async (req, res) => {
 
   try {
     const history = await ExchangeRate.find({ userId: req.session.userId }).sort({ timestamp: -1 });
-    res.render("exchange-rate-history", { history, user: await User.findById(req.session.userId) });
+    res.render("exchange-rate-history", { history, user: await User.findById(req.session.userId), isAdmin: req.session.isAdmin });
   } catch (error) {
     console.error("Error fetching exchange rate history:", error);
     res.render("exchange-rate-history", { 
       error: "Error retrieving your exchange rate history.",
-      user: await User.findById(req.session.userId)
+      user: await User.findById(req.session.userId),
+      isAdmin: req.session.isAdmin
     });
   }
 });

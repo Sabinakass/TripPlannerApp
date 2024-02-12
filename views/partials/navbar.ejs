@@ -13,12 +13,18 @@
           <a class="nav-link" href="/exchange-rate">Exchange Rate</a>
         </li>
         <% if (user) { %>
+          <% if (isAdmin) { %>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin">Admin Panel</a>
+            </li>
+          <% } %>
           <li class="nav-item">
             <a class="nav-link" href="/weather-history">Weather History</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/exchange-rate-history">Exchange Rate History</a>
           </li>
+    
           <li class="nav-item">
             <a class="nav-link" href="/logout">Logout</a>
           </li>
@@ -34,4 +40,3 @@
     </div>
   </div>
 </nav>
-

@@ -9,3 +9,7 @@ in the command line type in "npm install" to install all the dependencies, then 
 - OpenWeather
 - Weatherbit
 - ExchangeRate 
+- Google Maps
+
+## DEPLOY
+Deployed in heroku
