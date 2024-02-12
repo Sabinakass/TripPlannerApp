@@ -244,21 +244,21 @@ app.get("/edit-user/:id", async (req, res) => {
 
 app.post("/users/edit/:userId", async (req, res) => {
   const { username, password } = req.body;
- 
-  let isAdmin = req.body.isAdmin === 'true';
+   
+    let isAdmin = !!req.body.isAdmin; 
 
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
+    try {
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
 
-    user.username = username;
-    if (password) user.password = password;
-    user.isAdmin = isAdmin;
+        user.username = username;
+        if (password) user.password = password;
+        user.isAdmin = isAdmin;
 
-    await user.save();
-    res.redirect("/admin");
+        await user.save();
+        res.redirect("/admin");
   } catch (error) {
     console.error("Error updating user:", error);
     res.status(500).send("Server error");
