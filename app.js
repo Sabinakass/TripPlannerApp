@@ -121,7 +121,9 @@ app.post("/login", async (req, res) => {
 
     return res.redirect("/");
   } else {
-    res.render("login", { error: "Invalid username or password" });
+    res.render('login', {
+      user: req.session.user || null, 
+       error: "Invalid username or password" });
   }
 });
 
