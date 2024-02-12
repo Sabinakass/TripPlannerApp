@@ -84,6 +84,7 @@ app.get("/", (req, res) => {
         weather: newWeather,
         error: null,
         user: req.session.username,
+        isAdmin: req.session.isAdmin
       });
     } catch (error) {
       console.error("Error fetching weather data:", error);
@@ -230,7 +231,7 @@ app.get("/edit-user/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-        // Handle user not found error
+       
         return res.status(404).send("User not found");
     }
     res.render("edit-user", { user,isAdmin: req.session.isAdmin });
@@ -243,7 +244,7 @@ app.get("/edit-user/:id", async (req, res) => {
 
 app.post("/users/edit/:userId", async (req, res) => {
   const { username, password } = req.body;
-  // Convert isAdmin from string to boolean correctly
+ 
   let isAdmin = req.body.isAdmin === 'true';
 
   try {
