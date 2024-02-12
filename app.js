@@ -6,7 +6,6 @@ const mongoose = require("mongoose");
 const User = require("./userModel");
 const Weather = require("./weatherModel");
 const ExchangeRate = require('./ExchangeRateModel');
-const AirQuality = require('./AirQuality');
 
 
 const adminUsername = process.env.ADMIN_USERNAME;
@@ -55,46 +54,46 @@ app.get("/", (req, res) => {
     const city = req.body.city;
     const apiKey = process.env.OPENWEATHER_API_KEY;
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
-  
+    const apigKey = process.env.WEATHERBIT_AIR_QUALITY_API_KEY;
+    const sunUrl = `https://api.weatherbit.io/v2.0/current?city=${city}&key=${apigKey}&include=minutely`;
     try {
       const response = await axios.get(url);
       const weatherData = response.data;
       const weatherDescription = weatherData.weather[0].description;
       const iconCode = weatherData.weather[0].icon;
       const iconUrl = `http://openweathermap.org/img/w/${iconCode}.png`;
-  
-      const newWeatherSearch = new Weather({
-        city: weatherData.name,
+     
+
+      const respons = await axios.get(sunUrl);
+      const weatherDat = respons.data.data[0];
+
+      const newWeather = new Weather({
+        city: city,
         temperature: weatherData.main.temp,
-        description: weatherDescription,
+        description:weatherDescription,
         icon: iconUrl,
         userId: req.session.userId,
+        sunrise: weatherDat.sunrise,
+        sunset: weatherDat.sunset,
       });
   
-      await newWeatherSearch.save();
+      await newWeather.save();
   
       res.render("index", {
-        weather: {
-          city: weatherData.name,
-          temperature: weatherData.main.temp,
-          description: weatherDescription,
-          icon: iconUrl,
-        },
+        weather: newWeather,
         error: null,
         user: req.session.username,
       });
     } catch (error) {
-      console.error(
-        "Error fetching weather data:",
-        error.response ? error.response.data : error
-      );
+      console.error("Error fetching weather data:", error);
       res.render("index", {
         weather: null,
-        error: "Error, please try again",
+        error: "Failed to fetch data. Please try again.",
         user: req.session.username,
       });
     }
   });
+
 
 app.get("/login", (req, res) => {
   res.render("login", {
@@ -138,7 +137,7 @@ app.get("/weather-history", async (req, res) => {
   }
 
   try {
-    const weatherHistory = await Weather.find({ userId: req.session.userId });
+    const weatherHistory = await Weather.find({ userId: req.session.userId }).sort('-date');;
     res.render("weather-history", {
       weatherData: weatherHistory,
       user: req.session.username || null,
@@ -262,19 +261,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-app.get("/news", async (req, res) => {
-  const apiKey = process.env.NEWS_API_KEY;
-  const url = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${apiKey}`;
 
-  try {
-    const response = await axios.get(url);
-    const articles = response.data.articles;
-    res.render("news", { articles });
-  } catch (error) {
-    console.error("Error fetching news:", error);
-    res.render("news", { error: "Error, please try again" });
-  }
-});
 
 app.get("/exchange-rate", async (req, res) => {
   const apiKey = process.env.EXCHANGE_RATE_API_KEY;
@@ -317,6 +304,7 @@ app.get("/exchange-rate", async (req, res) => {
     });
   }
 });
+
 app.get("/exchange-rate-history", async (req, res) => {
   if (!req.session || !req.session.userId) {
     return res.redirect("/login");
@@ -329,48 +317,6 @@ app.get("/exchange-rate-history", async (req, res) => {
     console.error("Error fetching exchange rate history:", error);
     res.render("exchange-rate-history", { 
       error: "Error retrieving your exchange rate history.",
-      user: await User.findById(req.session.userId)
-    });
-  }
-});
-app.get("/air-quality/:city", async (req, res) => {
-  if (!req.session.userId) {
-    return res.redirect("/login");
-  }
-
-  const city = encodeURIComponent(req.params.city);
-  const url = `https://api.openaq.org/v1/latest?city=${city}&limit=1`;
-
-  try {
-    const response = await axios.get(url);
-    if (response.data && response.data.results.length > 0) {
-      const locationData = response.data.results[0];
-      const aqiData = locationData.measurements.find(m => m.parameter === 'pm25'); // Simplifying to PM2.5 for demonstration
-
-      if (!aqiData) throw new Error('AQI data not available for this location.');
-
-      const airQuality = new AirQuality({
-        city: city,
-        aqi: aqiData.value,
-        mainPollutant: aqiData.parameter,
-        userId: req.session.userId
-      });
-      await airQuality.save();
-
-      res.render("index", {
-        airQuality:airQuality,
-        city: city,
-        aqi: aqiData.value,
-        mainPollutant: aqiData.parameter,
-        user: await User.findById(req.session.userId)
-      });
-    } else {
-      throw new Error("No air quality data found for this city.");
-    }
-  } catch (error) {
-    console.error("Error fetching air quality data:", error);
-    res.render("air-quality", {
-      error: "Error, please try again",
       user: await User.findById(req.session.userId)
     });
   }

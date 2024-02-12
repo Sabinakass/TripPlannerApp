@@ -20,6 +20,8 @@
               <h2>Weather in <%= weather.city %>:</h2>
               <p>Temperature: <%= weather.temperature %>°C</p>
               <p>Description: <%= weather.description %></p>
+              <p>Sunrise: <%= weather.sunrise %></p>
+              <p>Sunset: <%= weather.sunset %></p>
             </div>
             <div>
               <img src="<%= weather.icon %>" alt="Weather icon" style="max-height: 100px;">
@@ -28,7 +30,7 @@
   
          
     </div>
-
+    
     <% } else if (error) { %>
       <div class="alert alert-danger"><%= error %></div>
     <% } %>

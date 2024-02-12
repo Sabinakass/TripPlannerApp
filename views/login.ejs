@@ -10,11 +10,11 @@
     <%- include('partials/navbar') %>
   <div class="container py-5">
     <h2 class="mb-4">Login</h2>
-    <!-- Message Display -->
+   
     <% if (query.message) { %>
       <div class="alert alert-info"><%= query.message %></div>
     <% } %>
-    <!-- Login Form -->
+   
     <form action="/login" method="post">
       <div class="form-group">
         <label for="username">Username</label>

@@ -5,13 +5,15 @@ const weatherSchema = new mongoose.Schema({
     temperature: Number,
     description: String,
     icon: String,
+    sunrise: String, 
+    sunset: String, 
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true
     },
     date: { type: Date, default: Date.now }
-  });
+});
 
 const Weather = mongoose.model('Weather', weatherSchema);
 
